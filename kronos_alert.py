@@ -6,7 +6,7 @@ if not os.path.exists("Kronos"):
 sys.path.insert(0, "Kronos")
 from model import Kronos, KronosTokenizer, KronosPredictor
 
-NTFY_TOPIC = "YOUR_TOPIC_NAME"
+NTFY_TOPIC = "Avax-cronos-PawanM"
 LOCAL_TZ = "America/Los_Angeles"  # PST/PDT, auto-adjusts for daylight saving
 
 

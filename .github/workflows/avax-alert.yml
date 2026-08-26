@@ -1,8 +1,11 @@
 name: AVAX Kronos Alert
 on:
   schedule:
-    - cron: '0 */4 * * *'   # every 4 hours, matches your candle timeframe
-  workflow_dispatch:         # lets you trigger it manually too
+    - cron: '0 */4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   run:
@@ -14,3 +17,10 @@ jobs:
           python-version: '3.11'
       - run: pip install requests pandas numpy torch "huggingface_hub>=0.24.0" "safetensors>=0.4.3" einops
       - run: python kronos_alert.py
+      - name: Commit forecast history
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add forecast_history/kronos_forecasts.csv
+          git diff --staged --quiet || git commit -m "Update forecast history [skip ci]"
+          git push

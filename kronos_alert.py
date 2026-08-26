@@ -90,9 +90,10 @@ msg = (
     f"MACD(vol): {df['macd_vol_hist'].iloc[-1]:.0f}"
 )
 
-requests.post(
+resp = requests.post(
     f"https://ntfy.sh/{NTFY_TOPIC}",
     data=msg.encode("utf-8"),
     headers={"Title": "AVAX Kronos Update"},
 )
+print(f"ntfy response: {resp.status_code} {resp.text}")
 print(msg)

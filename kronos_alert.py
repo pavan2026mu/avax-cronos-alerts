@@ -81,6 +81,7 @@ current = df["close"].iloc[-1]
 current_time = df["timestamps"].iloc[-1]
 pct_move = (forecast["close"].iloc[-1] / current - 1) * 100
 
+# --- Short notification (unchanged) ---
 msg = (
     f"AVAX ${current:.3f} @ {current_time.strftime('%b %d %I:%M %p %Z')}\n"
     f"Kronos 8d forecast: {pct_move:+.2f}%\n"
@@ -97,3 +98,21 @@ resp = requests.post(
 )
 print(f"ntfy response: {resp.status_code} {resp.text}")
 print(msg)
+
+# --- Save full 48-candle detailed forecast to history CSV ---
+os.makedirs("forecast_history", exist_ok=True)
+
+detailed = forecast[["open", "high", "low", "close"]].copy()
+detailed.insert(0, "forecast_timestamp", detailed.index)
+detailed.insert(0, "run_time", current_time)
+detailed.insert(0, "run_id", current_time.strftime("%Y%m%d_%H%M%S"))
+detailed["current_price_at_run"] = current
+
+history_file = "forecast_history/kronos_forecasts.csv"
+detailed.to_csv(
+    history_file,
+    mode="a",
+    header=not os.path.exists(history_file),
+    index=False,
+)
+print(f"Appended {len(detailed)} forecast rows to {history_file}")

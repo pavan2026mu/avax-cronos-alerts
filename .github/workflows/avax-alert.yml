@@ -1,0 +1,16 @@
+name: AVAX Kronos Alert
+on:
+  schedule:
+    - cron: '0 */4 * * *'   # every 4 hours, matches your candle timeframe
+  workflow_dispatch:         # lets you trigger it manually too
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install requests pandas numpy torch huggingface_hub einops
+      - run: python kronos_alert.py

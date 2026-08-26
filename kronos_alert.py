@@ -1,3 +1,4 @@
+import safetensors
 import requests, pandas as pd, numpy as np, sys, subprocess, os
 
 if not os.path.exists("Kronos"):

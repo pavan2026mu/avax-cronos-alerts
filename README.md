@@ -1,0 +1,1 @@
+# avax-cronos-alerts

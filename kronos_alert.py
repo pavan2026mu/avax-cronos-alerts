@@ -131,18 +131,27 @@ msg = (
 
 GITHUB_PAGES_URL = "https://pavan2026mu.github.io/avax-cronos-alerts/"
 
+# 1. Send the chart image first (short caption only, no newlines in header)
 with open(chart_png_path, "rb") as f:
-    resp = requests.put(
+    resp_img = requests.put(
         f"https://ntfy.sh/{NTFY_TOPIC}",
         data=f,
         headers={
-            "Title": "AVAX Kronos Update",
+            "Title": "AVAX Kronos Chart",
             "Filename": "avax_forecast.png",
-            "Message": msg,
+            "Message": f"AVAX ${current:.3f} | {pct_move:+.2f}% over 8d",
             "Click": GITHUB_PAGES_URL,
         },
     )
-print(f"ntfy response: {resp.status_code} {resp.text}")
+print(f"ntfy image response: {resp_img.status_code} {resp_img.text}")
+
+# 2. Send the full detailed text as a separate message (newlines OK in body)
+resp_text = requests.post(
+    f"https://ntfy.sh/{NTFY_TOPIC}",
+    data=msg.encode("utf-8"),
+    headers={"Title": "AVAX Kronos Update", "Click": GITHUB_PAGES_URL},
+)
+print(f"ntfy text response: {resp_text.status_code} {resp_text.text}")
 print(msg)
 
 # --- Save full 48-candle detailed forecast to history CSV ---

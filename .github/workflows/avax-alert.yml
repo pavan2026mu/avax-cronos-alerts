@@ -21,6 +21,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add forecast_history/kronos_forecasts.csv
+          git add forecast_history/kronos_forecasts.csv docs/index.html
           git diff --staged --quiet || git commit -m "Update forecast history [skip ci]"
           git push

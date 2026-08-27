@@ -77,25 +77,71 @@ forecast = predictor.predict(
 )
 forecast.index = y_timestamp
 
+import plotly.graph_objects as go
+
 current = df["close"].iloc[-1]
 current_time = df["timestamps"].iloc[-1]
 pct_move = (forecast["close"].iloc[-1] / current - 1) * 100
 
-# --- Short notification (unchanged) ---
+f_index = forecast.index
+f_open = forecast["open"].values
+f_high = forecast["high"].values
+f_low = forecast["low"].values
+f_close = forecast["close"].values
+
+max_high = f_high.max()
+min_low = f_low.min()
+
+fig = go.Figure(data=[go.Candlestick(
+    x=f_index,
+    open=f_open, high=f_high, low=f_low, close=f_close,
+    increasing_line_color="#16a34a", decreasing_line_color="#dc2626",
+    name="Forecast"
+)])
+
+fig.add_hline(y=current, line_dash="dash", line_color="gray",
+              annotation_text=f"Current: ${current:.3f}", annotation_position="top left")
+fig.add_hline(y=df["bb_upper"].iloc[-1], line_dash="dot", line_color="#94a3b8")
+fig.add_hline(y=df["bb_lower"].iloc[-1], line_dash="dot", line_color="#94a3b8")
+
+fig.update_layout(
+    title=f"AVAX Kronos 8-Day Forecast — {pct_move:+.2f}% ({current_time.strftime('%b %d %I:%M %p %Z')})",
+    yaxis_title="AVAX/USD",
+    xaxis_rangeslider_visible=False,
+    template="plotly_white",
+    height=600,
+)
+
+os.makedirs("docs", exist_ok=True)
+fig.write_html("docs/index.html", include_plotlyjs="cdn")
+
+chart_png_path = "avax_forecast_chart.png"
+fig.write_image(chart_png_path, width=1100, height=600, scale=1.5)
+
 msg = (
     f"AVAX ${current:.3f} @ {current_time.strftime('%b %d %I:%M %p %Z')}\n"
     f"Kronos 8d forecast: {pct_move:+.2f}%\n"
+    f"Predicted range: ${min_low:.3f} - ${max_high:.3f}\n"
     f"BB: {df['bb_lower'].iloc[-1]:.2f}-{df['bb_upper'].iloc[-1]:.2f} "
     f"(mid {df['bb_mid'].iloc[-1]:.2f})\n"
     f"StochRSI K={df['stoch_k'].iloc[-1]:.0f} D={df['stoch_d'].iloc[-1]:.0f}\n"
-    f"MACD(vol): {df['macd_vol_hist'].iloc[-1]:.0f}"
+    f"MACD(vol): {df['macd_vol_hist'].iloc[-1]:.0f}\n"
+    f"Tap for interactive chart"
 )
 
-resp = requests.post(
-    f"https://ntfy.sh/{NTFY_TOPIC}",
-    data=msg.encode("utf-8"),
-    headers={"Title": "AVAX Kronos Update"},
-)
+GITHUB_PAGES_URL = "https://pavan2026mu.github.io/avax-cronos-alerts/"
+
+with open(chart_png_path, "rb") as f:
+    resp = requests.put(
+        f"https://ntfy.sh/{NTFY_TOPIC}",
+        data=f,
+        headers={
+            "Title": "AVAX Kronos Update",
+            "Filename": "avax_forecast.png",
+            "Message": msg,
+            "Click": GITHUB_PAGES_URL,
+        },
+    )
 print(f"ntfy response: {resp.status_code} {resp.text}")
 print(msg)
 
